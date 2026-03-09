@@ -3,63 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clair de Lune</title>
+  <title>夜曲 Op.72 No.1</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       height: 100vh;
-      background: #0a0a0a;
-      color: #ddd;
-      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #0a0e1a, #000000);
+      color: #d0d8ff;
+      font-family: Arial, Helvetica, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .player {
       width: 340px;
-      padding: 35px 25px;
-      background: #111;
-      border-radius: 10px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      max-width: 90%;
+      padding: 40px 25px;
+      background: rgba(15, 20, 40, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,20,0.8);
     }
     .controls {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     button {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       border: none;
       border-radius: 50%;
-      background: #222;
-      color: #eee;
-      font-size: 28px;
+      background: #1e2a50;
+      color: #e0e8ff;
+      font-size: 32px;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     }
-    button:hover { background: #334; transform: scale(1.05); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button:hover { background: #2e3a70; transform: scale(1.08); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; background: #1e2a50; }
     .progress-container {
-      height: 6px;
+      height: 8px;
       background: #222;
-      border-radius: 3px;
-      margin: 18px 0;
+      border-radius: 4px;
+      margin: 20px 0;
       cursor: pointer;
       overflow: hidden;
     }
     .progress {
       height: 100%;
-      width: 0;
-      background: linear-gradient(to right, #6a9fff, #a0cfff);
-      border-radius: 3px;
-      transition: width 0.1s linear;
+      width: 0%;
+      background: linear-gradient(to right, #6a9fff, #a0c0ff);
+      border-radius: 4px;
+      transition: width 0.12s linear;
     }
     .time {
       display: flex;
       justify-content: space-between;
       font-size: 13px;
-      color: #888;
-      margin-bottom: 18px;
+      color: #90a0ff;
+      margin-bottom: 20px;
     }
     .volume {
       display: flex;
@@ -67,9 +69,9 @@
       gap: 12px;
     }
     .volume span {
-      font-size: 13px;
+      font-size: 14px;
       min-width: 45px;
-      color: #aaa;
+      color: #a0b0ff;
     }
     input[type=range] {
       -webkit-appearance: none;
@@ -81,17 +83,17 @@
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      background: #8ab4ff;
+      width: 18px;
+      height: 18px;
+      background: #a0c0ff;
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 0 8px rgba(138,180,255,0.5);
+      box-shadow: 0 0 10px rgba(160,192,255,0.6);
     }
     input[type=range]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      background: #8ab4ff;
+      width: 18px;
+      height: 18px;
+      background: #a0c0ff;
       border: none;
       border-radius: 50%;
       cursor: pointer;
@@ -120,9 +122,9 @@
   </div>
 </div>
 
-<audio id="audio" preload="metadata">
-  <source src="https://www.orangefreesounds.com/wp-content/uploads/2018/01/Clair-de-lune-piano.mp3" type="audio/mpeg">
-  你的浏览器不支持音频元素。
+<audio id="audio" preload="metadata" loop>
+  <source src="https://ia601509.us.archive.org/23/items/imslp-nocturne-op72-lekro/PMLP02313-chopin-nocturne-op72-lekro.mp3" type="audio/mpeg">
+  你的浏览器不支持音频。
 </audio>
 
 <script>
@@ -135,41 +137,41 @@
   const vol = document.getElementById('vol');
 
   // 音量记忆
-  const savedVol = localStorage.getItem('clairVol');
+  const savedVol = localStorage.getItem('nocturneVol');
   if (savedVol !== null) {
     vol.value = savedVol;
-    audio.volume = savedVol;
+    audio.volume = parseFloat(savedVol);
   }
 
   function fmt(t) {
-    if (isNaN(t)) return '--:--';
-    let m = Math.floor(t / 60);
-    let s = Math.floor(t % 60);
-    return m + ':' + (s < 10 ? '0' : '') + s;
+    if (isNaN(t) || !t) return '--:--';
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   audio.addEventListener('loadedmetadata', () => {
     dur.textContent = fmt(audio.duration);
-    btn.disabled = false;  // 元数据加载完启用按钮
+    btn.disabled = false;
   });
 
   audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return;
-    let p = (audio.currentTime / audio.duration) * 100;
-    prog.style.width = p + '%';
+    const percent = (audio.currentTime / audio.duration) * 100;
+    prog.style.width = `${percent}%`;
     curr.textContent = fmt(audio.currentTime);
   });
 
   progContainer.addEventListener('click', e => {
     if (!audio.duration) return;
-    let rect = progContainer.getBoundingClientRect();
-    let pos = (e.clientX - rect.left) / rect.width;
+    const rect = progContainer.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
     audio.currentTime = pos * audio.duration;
   });
 
   btn.addEventListener('click', () => {
     if (audio.paused) {
-      audio.play().catch(() => {});  // 捕获 autoplay 错误
+      audio.play().catch(() => {});
       btn.textContent = '❚❚';
     } else {
       audio.pause();
@@ -179,17 +181,16 @@
 
   vol.addEventListener('input', () => {
     audio.volume = vol.value;
-    localStorage.setItem('clairVol', vol.value);
+    localStorage.setItem('nocturneVol', vol.value);
   });
 
   audio.addEventListener('ended', () => {
     btn.textContent = '▶';
   });
 
-  // 如果 mp3 加载失败，禁用按钮
   audio.addEventListener('error', () => {
     btn.disabled = true;
-    btn.textContent = 'Error';
+    btn.textContent = '加载失败';
   });
 </script>
 
