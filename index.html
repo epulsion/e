@@ -1,105 +1,97 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>月光 - Clair de Lune</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clair de Lune</title>
   <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      margin: 0;
       height: 100vh;
-      background: #0f0f0f;
+      background: #0a0a0a;
       color: #ddd;
-      font-family: system-ui, -apple-system, sans-serif;
-      display: grid;
-      place-items: center;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .player {
-      width: 320px;
-      padding: 2.5rem 1.8rem;
+      width: 340px;
+      padding: 35px 25px;
       background: #111;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-    }
-    h1 {
-      margin: 0 0 1.8rem;
-      font-size: 1.4rem;
-      font-weight: 400;
-      text-align: center;
-      letter-spacing: 2px;
-      color: #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
     }
     .controls {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      margin-bottom: 1.6rem;
+      text-align: center;
+      margin-bottom: 20px;
     }
     button {
-      width: 64px;
-      height: 64px;
+      width: 70px;
+      height: 70px;
       border: none;
       border-radius: 50%;
-      background: #2a2a2a;
-      color: white;
-      font-size: 1.8rem;
+      background: #222;
+      color: #eee;
+      font-size: 28px;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: all 0.25s ease;
     }
-    button:hover { background: #3a3a3a; transform: scale(1.08); }
-    button:active { transform: scale(0.96); }
+    button:hover { background: #334; transform: scale(1.05); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     .progress-container {
       height: 6px;
-      background: #333;
+      background: #222;
       border-radius: 3px;
-      margin: 1.2rem 0;
+      margin: 18px 0;
       cursor: pointer;
-      position: relative;
+      overflow: hidden;
     }
     .progress {
       height: 100%;
-      width: 0%;
-      background: #7a9fff;
+      width: 0;
+      background: linear-gradient(to right, #6a9fff, #a0cfff);
       border-radius: 3px;
-      pointer-events: none;
+      transition: width 0.1s linear;
     }
     .time {
       display: flex;
       justify-content: space-between;
-      font-size: 0.78rem;
+      font-size: 13px;
       color: #888;
-      margin-bottom: 1.4rem;
+      margin-bottom: 18px;
     }
-    .volume-container {
+    .volume {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 12px;
     }
-    .volume-container span {
-      font-size: 0.9rem;
-      min-width: 36px;
+    .volume span {
+      font-size: 13px;
+      min-width: 45px;
       color: #aaa;
     }
-    input[type="range"] {
+    input[type=range] {
       -webkit-appearance: none;
-      height: 5px;
-      background: #444;
+      height: 6px;
+      background: #333;
       border-radius: 3px;
       outline: none;
       flex: 1;
     }
-    input[type="range"]::-webkit-slider-thumb {
+    input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      background: #7a9fff;
+      width: 16px;
+      height: 16px;
+      background: #8ab4ff;
       border-radius: 50%;
       cursor: pointer;
+      box-shadow: 0 0 8px rgba(138,180,255,0.5);
     }
-    input[type="range"]::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      background: #7a9fff;
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #8ab4ff;
       border: none;
       border-radius: 50%;
       cursor: pointer;
@@ -109,79 +101,95 @@
 <body>
 
 <div class="player">
-  <h1>Clair de Lune</h1>
-  
   <div class="controls">
-    <button id="playPauseBtn">▶</button>
+    <button id="btn" disabled>▶</button>
   </div>
 
-  <div class="progress-container" id="progressContainer">
-    <div class="progress" id="progress"></div>
+  <div class="progress-container" id="progContainer">
+    <div class="progress" id="prog"></div>
   </div>
 
   <div class="time">
-    <span id="currentTime">0:00</span>
-    <span id="duration">0:00</span>
+    <span id="curr">--:--</span>
+    <span id="dur">--:--</span>
   </div>
 
-  <div class="volume-container">
+  <div class="volume">
     <span>音量</span>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+    <input type="range" id="vol" min="0" max="1" step="0.01" value="0.8">
   </div>
 </div>
 
-<audio id="audio" preload="auto">
+<audio id="audio" preload="metadata">
   <source src="https://www.orangefreesounds.com/wp-content/uploads/2018/01/Clair-de-lune-piano.mp3" type="audio/mpeg">
-  你的瀏覽器不支援 audio 元素。
+  你的浏览器不支持音频元素。
 </audio>
 
 <script>
   const audio = document.getElementById('audio');
-  const playPauseBtn = document.getElementById('playPauseBtn');
-  const progressContainer = document.getElementById('progressContainer');
-  const progress = document.getElementById('progress');
-  const currentTimeEl = document.getElementById('currentTime');
-  const durationEl = document.getElementById('duration');
-  const volumeSlider = document.getElementById('volume');
+  const btn = document.getElementById('btn');
+  const progContainer = document.getElementById('progContainer');
+  const prog = document.getElementById('prog');
+  const curr = document.getElementById('curr');
+  const dur = document.getElementById('dur');
+  const vol = document.getElementById('vol');
 
-  function formatTime(seconds) {
-    const min = Math.floor(seconds / 60);
-    const sec = Math.floor(seconds % 60);
-    return `${min}:${sec.toString().padStart(2, '0')}`;
+  // 音量记忆
+  const savedVol = localStorage.getItem('clairVol');
+  if (savedVol !== null) {
+    vol.value = savedVol;
+    audio.volume = savedVol;
   }
 
-  audio.addEventListener('timeupdate', () => {
-    const percent = (audio.currentTime / audio.duration) * 100;
-    progress.style.width = `${percent}%`;
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-  });
+  function fmt(t) {
+    if (isNaN(t)) return '--:--';
+    let m = Math.floor(t / 60);
+    let s = Math.floor(t % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
 
   audio.addEventListener('loadedmetadata', () => {
-    durationEl.textContent = formatTime(audio.duration);
+    dur.textContent = fmt(audio.duration);
+    btn.disabled = false;  // 元数据加载完启用按钮
   });
 
-  progressContainer.addEventListener('click', (e) => {
-    const rect = progressContainer.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    let p = (audio.currentTime / audio.duration) * 100;
+    prog.style.width = p + '%';
+    curr.textContent = fmt(audio.currentTime);
+  });
+
+  progContainer.addEventListener('click', e => {
+    if (!audio.duration) return;
+    let rect = progContainer.getBoundingClientRect();
+    let pos = (e.clientX - rect.left) / rect.width;
     audio.currentTime = pos * audio.duration;
   });
 
-  playPauseBtn.addEventListener('click', () => {
+  btn.addEventListener('click', () => {
     if (audio.paused) {
-      audio.play();
-      playPauseBtn.textContent = '❚❚';
+      audio.play().catch(() => {});  // 捕获 autoplay 错误
+      btn.textContent = '❚❚';
     } else {
       audio.pause();
-      playPauseBtn.textContent = '▶';
+      btn.textContent = '▶';
     }
   });
 
-  volumeSlider.addEventListener('input', () => {
-    audio.volume = volumeSlider.value;
+  vol.addEventListener('input', () => {
+    audio.volume = vol.value;
+    localStorage.setItem('clairVol', vol.value);
   });
 
   audio.addEventListener('ended', () => {
-    playPauseBtn.textContent = '▶';
+    btn.textContent = '▶';
+  });
+
+  // 如果 mp3 加载失败，禁用按钮
+  audio.addEventListener('error', () => {
+    btn.disabled = true;
+    btn.textContent = 'Error';
   });
 </script>
 
