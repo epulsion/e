@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clair de Lune</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      height: 100vh;
+      background: #0a0a0a;
+      color: #ddd;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .player {
+      width: 340px;
+      padding: 35px 25px;
+      background: #111;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      width: 70px;
+      height: 70px;
+      border: none;
+      border-radius: 50%;
+      background: #222;
+      color: #eee;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    button:hover { background: #334; transform: scale(1.05); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .progress-container {
+      height: 6px;
+      background: #222;
+      border-radius: 3px;
+      margin: 18px 0;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(to right, #6a9fff, #a0cfff);
+      border-radius: 3px;
+      transition: width 0.1s linear;
+    }
+    .time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 18px;
+    }
+    .volume {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .volume span {
+      font-size: 13px;
+      min-width: 45px;
+      color: #aaa;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      outline: none;
+      flex: 1;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #8ab4ff;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(138,180,255,0.5);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #8ab4ff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="player">
+  <div class="controls">
+    <button id="btn" disabled>▶</button>
+  </div>
+
+  <div class="progress-container" id="progContainer">
+    <div class="progress" id="prog"></div>
+  </div>
+
+  <div class="time">
+    <span id="curr">--:--</span>
+    <span id="dur">--:--</span>
+  </div>
+
+  <div class="volume">
+    <span>音量</span>
+    <input type="range" id="vol" min="0" max="1" step="0.01" value="0.8">
+  </div>
+</div>
+
+<audio id="audio" preload="metadata">
+  <source src="https://www.orangefreesounds.com/wp-content/uploads/2018/01/Clair-de-lune-piano.mp3" type="audio/mpeg">
+  你的浏览器不支持音频元素。
+</audio>
+
+<script>
+  const audio = document.getElementById('audio');
+  const btn = document.getElementById('btn');
+  const progContainer = document.getElementById('progContainer');
+  const prog = document.getElementById('prog');
+  const curr = document.getElementById('curr');
+  const dur = document.getElementById('dur');
+  const vol = document.getElementById('vol');
+
+  // 音量记忆
+  const savedVol = localStorage.getItem('clairVol');
+  if (savedVol !== null) {
+    vol.value = savedVol;
+    audio.volume = savedVol;
+  }
+
+  function fmt(t) {
+    if (isNaN(t)) return '--:--';
+    let m = Math.floor(t / 60);
+    let s = Math.floor(t % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  audio.addEventListener('loadedmetadata', () => {
+    dur.textContent = fmt(audio.duration);
+    btn.disabled = false;  // 元数据加载完启用按钮
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    let p = (audio.currentTime / audio.duration) * 100;
+    prog.style.width = p + '%';
+    curr.textContent = fmt(audio.currentTime);
+  });
+
+  progContainer.addEventListener('click', e => {
+    if (!audio.duration) return;
+    let rect = progContainer.getBoundingClientRect();
+    let pos = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pos * audio.duration;
+  });
+
+  btn.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play().catch(() => {});  // 捕获 autoplay 错误
+      btn.textContent = '❚❚';
+    } else {
+      audio.pause();
+      btn.textContent = '▶';
+    }
+  });
+
+  vol.addEventListener('input', () => {
+    audio.volume = vol.value;
+    localStorage.setItem('clairVol', vol.value);
+  });
+
+  audio.addEventListener('ended', () => {
+    btn.textContent = '▶';
+  });
+
+  // 如果 mp3 加载失败，禁用按钮
+  audio.addEventListener('error', () => {
+    btn.disabled = true;
+    btn.textContent = 'Error';
+  });
+</script>
+
+</body>
+</html>
